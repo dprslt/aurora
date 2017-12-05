@@ -57,7 +57,7 @@ try:
 except ImportError:
     pass
 
-
+if __name__ == '__main__':
     args_parse(sys.argv[1:])
     logging.basicConfig(format='%(asctime)s %(filename)s->%(funcName)s():%(lineno)d %(levelname)-8s %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S', level=log_level, filename="log.txt")

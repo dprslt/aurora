@@ -76,7 +76,7 @@ class Digit(object):
     def _compute_permut(self, matrix):
         arr = [False,False,False,False,False,False,False]
 
-        if self.index % 2 == 0 :
+        if self.index == 0 or self.index == 3 :
             return matrix
 
         for i, c in enumerate(matrix):
@@ -109,7 +109,7 @@ class Digit(object):
         logging.debug(matrix_display)
 
         for index, value in enumerate(matrix_display):
-            if value :
+            if not value :
                 neo_color = Color(0,0,0)
             else :
                 neo_color = Color(color[0], color[1], color[2])
