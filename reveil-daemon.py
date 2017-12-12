@@ -7,7 +7,7 @@ import logging, sys, getopt,time
 
 from datetime import datetime
 
-import display, animation, utils
+import display, animation, utils, couleurs
 
 
 
@@ -83,10 +83,15 @@ if __name__ == '__main__':
         old_time_str = time_str
         time_str = datetime.now().strftime("%H%M")
 
-        red = int(str(time_str[0:2])) * 10 + 15
-        green = int(str(time_str[1:3])) * 1337 % 255
-        blue = int(str(time_str[2:4])) % 24 * 10 + 15
-        color = Color(red,green,blue)
+
+        # TODO tester
+
+        hours = int(time_str[0:2])
+        minutes = int(time_str[2:4])
+
+        minutes_of_day = hours * 60 + minutes
+        rgb_color = couleurs.compute_color(minutes_of_day)
+        color = utils.convert_rgb_to_Color(rgb_color)
 
 
         if not old_time_str == time_str:
