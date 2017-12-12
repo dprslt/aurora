@@ -44,34 +44,34 @@ characters_map = {
 mask_permutation = [1,0,4,3,2,6,5]
 
 
+from neopixel import *
 import logging
 
-try:
-    from neopixel import *
-except ImportError:
-    pass
+import utils
 
 class Digit(object):
 
     """docstring for Digit."""
-    def __init__(self, index, offset_addr, strip, emulated=False):
+    def __init__(self, index, offset_addr, strip):
         super(Digit, self).__init__()
         self.index = index
         self.offset_addr = offset_addr
         self.strip = strip
-        self.emulated = emulated
 
-        logging.info("New Digit created, index: %d, offset_addr: %d, emulated:%s", self.index, self.offset_addr, self.emulated)
+        logging.info("New Digit created, index: %d, offset_addr: %d", self.index, self.offset_addr)
 
     def write(self, char, color=(255,0,0)):
         if char not in characters_map:
             logging.warning("Error displaying : %s not found in dictionnay, it's probably not possible to print if on a 7 segments display",char)
             return
 
-        if self.emulated:
-            self._console_output(char)
-        else:
-            self._led_output(char,color)
+        self._led_output(char,color)
+
+    def clear(self):
+        logging.info("Digit %d : clear", self.index)
+        for i in range(0,7):
+            self.strip.setPixelColor(self.offset_addr + i, Color(0,0,0))
+        self.strip.show()
 
     def _compute_permut(self, matrix):
         arr = [False,False,False,False,False,False,False]
@@ -84,24 +84,7 @@ class Digit(object):
 
         return arr
 
-    def _console_output(self, char, color=(255,0,0)):
-
-        matrix_display = characters_map[char]
-        logging.debug(matrix_display)
-
-        s = list(map(lambda x: 'X' if x else ' ' , matrix_display))
-        logging.debug(s)
-
-        print ' ',s[4],' '
-        print s[0],' ',s[5]
-        print ' ',s[3],' '
-        print s[1],' ',s[6]
-        print ' ',s[2],' '
-
-
-    def _led_output(self, char, color=(255,0,0)):
-
-        # Import neo pixel
+    def _led_output(self, char, color=Color(255,0,0)):
 
         matrix_display = characters_map[char]
         logging.debug(matrix_display)
@@ -110,10 +93,9 @@ class Digit(object):
 
         for index, value in enumerate(matrix_display):
             if not value :
-                neo_color = Color(0,0,0)
+				self.strip.setPixelColor(self.offset_addr + index, Color(0,0,0))
             else :
-                neo_color = Color(color[0], color[1], color[2])
+				self.strip.setPixelColor(self.offset_addr + index, color)
 
-            self.strip.setPixelColor(self.offset_addr + index, neo_color)
 
         self.strip.show()

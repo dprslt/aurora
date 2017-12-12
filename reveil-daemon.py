@@ -1,10 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from neopixel import *
+
 import logging, sys, getopt,time
+
 from datetime import datetime
 
-import display
+import display, animation, utils
 
 
 
@@ -13,11 +16,10 @@ from : https://www.tutorialspoint.com/python/python_command_line_arguments.htm
 """
 def args_parse(argv):
     global log_level
-    global emulated
 
-    hlp = "reveil-daemon.py [-v|e]"
+    hlp = "reveil-daemon.py [-v]"
     try:
-        opts, args = getopt.getopt(argv,"hve")
+        opts, args = getopt.getopt(argv,"hv")
     except getopt.GetoptError:
         print hlp
         sys.exit(2)
@@ -27,8 +29,7 @@ def args_parse(argv):
             sys.exit()
         elif opt == "-v":
             log_level=logging.DEBUG
-        elif opt == "-e":
-            emulated=True
+
 
 
 def init_leds_strip():
@@ -38,7 +39,7 @@ def init_leds_strip():
     #LED_PIN        = 10      # GPIO pin connected to the pixels (10 uses SPI /dev/spidev0.0).
     LED_FREQ_HZ    = 800000  # LED signal frequency in hertz (usually 800khz)
     LED_DMA        = 5       # DMA channel to use for generating signal (try 5)
-    LED_BRIGHTNESS = 100     # Set to 0 for darkest and 255 for brightest
+    LED_BRIGHTNESS = 25     # Set to 0 for darkest and 255 for brightest
     LED_INVERT     = False   # True to invert the signal (when using NPN transistor level shift)
     LED_CHANNEL    = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
     LED_STRIP      = ws.WS2811_STRIP_GRB   # Strip type and colour ordering
@@ -48,16 +49,11 @@ def init_leds_strip():
 
 
 log_level = logging.INFO
-emulated = False
 
 
-try:
-    from neopixel import *
-    logging.info("NeoPixel is installed !")
-except ImportError:
-    pass
 
 if __name__ == '__main__':
+
     args_parse(sys.argv[1:])
     logging.basicConfig(format='%(asctime)s %(filename)s->%(funcName)s():%(lineno)d %(levelname)-8s %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S', level=log_level, filename="log.txt")
@@ -69,23 +65,35 @@ if __name__ == '__main__':
     logging.info("Starting configuration")
 
     ## LEDs Configuration
-    if not emulated:
-        strip = init_leds_strip()
-        strip.begin()
-    else:
-        strip = 0
+    strip = init_leds_strip()
+    strip.begin()
 
-    disp = display.Screen(strip, emulated=emulated)
+    disp = display.Screen(strip)
 
-    disp.display("dodo", dots=False)
-    time.sleep(2)
+    disp.display("dodo")
+    time.sleep(1)
+    disp.clear()
+
+    # animation.loop_chenillard_digits(strip, Color(50,130,255))
 
     ## Infinite Loop
-    time_str=""
+    time_str = ""
+    separator_state = False
     while True:
         old_time_str = time_str
         time_str = datetime.now().strftime("%H%M")
 
-        disp.display(time_str)
+        red = int(str(time_str[0:2])) * 10 + 15
+        green = int(str(time_str[1:3])) * 1337 % 255
+        blue = int(str(time_str[2:4])) % 24 * 10 + 15
+        color = Color(red,green,blue)
+
+
+        if not old_time_str == time_str:
+            disp.display(time_str, color=color)
+
+
+        disp.set_separator_state(separator_state, color)
+        separator_state = not separator_state
 
         time.sleep(1)
