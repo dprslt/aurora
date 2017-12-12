@@ -48,6 +48,7 @@ class Screen(object):
         logging.info("Clearing display.")
         for d in self.digits:
             d.clear()
+        self.set_separator_state(False)
 
 
     def display(self, string, color=Color(255,0,0)):
