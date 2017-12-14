@@ -7,21 +7,21 @@ import logging, sys, getopt, time, signal
 
 from datetime import datetime
 
-import display, animation, utils, couleurs
+import display, animation, utils, couleurs, top
+
+# LED strip configuration:
+LED_COUNT      = 56      # Number of LED pixels.
+LED_PIN        = 18      # GPIO pin connected to the pixels (18 uses PWM!).
+#LED_PIN        = 10      # GPIO pin connected to the pixels (10 uses SPI /dev/spidev0.0).
+LED_FREQ_HZ    = 800000  # LED signal frequency in hertz (usually 800khz)
+LED_DMA        = 5       # DMA channel to use for generating signal (try 5)
+LED_BRIGHTNESS = 255     # Set to 0 for darkest and 255 for brightest
+LED_INVERT     = False   # True to invert the signal (when using NPN transistor level shift)
+LED_CHANNEL    = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
+LED_STRIP      = ws.WS2811_STRIP_GRB   # Strip type and colour ordering
 
 
 def init_leds_strip():
-    # LED strip configuration:
-    LED_COUNT      = 31      # Number of LED pixels.
-    LED_PIN        = 18      # GPIO pin connected to the pixels (18 uses PWM!).
-    #LED_PIN        = 10      # GPIO pin connected to the pixels (10 uses SPI /dev/spidev0.0).
-    LED_FREQ_HZ    = 800000  # LED signal frequency in hertz (usually 800khz)
-    LED_DMA        = 5       # DMA channel to use for generating signal (try 5)
-    LED_BRIGHTNESS = 50     # Set to 0 for darkest and 255 for brightest
-    LED_INVERT     = False   # True to invert the signal (when using NPN transistor level shift)
-    LED_CHANNEL    = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
-    LED_STRIP      = ws.WS2811_STRIP_GRB   # Strip type and colour ordering
-
     return Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL, LED_STRIP)
 
 
@@ -45,10 +45,12 @@ def quick_time():
 
         if not old_time_str == time_str:
             minutes_of_day = hours * 60 + minutes
-            rgb_color = couleurs.compute_color(minutes_of_day,value_min_light = 0.10)
-            color = utils.convert_rgb_to_Color(rgb_color)
+            
+            rgb_color_digit = couleurs.compute_color(minutes_of_day, luminosity_coeff=0.2, value_min_light = 0.1)
+            rgb_color_top = couleurs.compute_color(minutes_of_day, luminosity_coeff=1)
 
-            disp.display(time_str, color=color)
+            disp.display(time_str, color=utils.convert_rgb_to_Color(rgb_color_digit))
+            top_light.show_color(utils.convert_rgb_to_Color(rgb_color_top))
 
         st = (st+10)%1440
 
@@ -65,18 +67,21 @@ def real_time():
         old_time_str = time_str
         time_str = datetime.now().strftime("%H%M")
 
+
+
         if not old_time_str == time_str:
             hours = int(time_str[0:2])
             minutes = int(time_str[2:4])
-
             minutes_of_day = hours * 60 + minutes
-            rgb_color = couleurs.compute_color(minutes_of_day)
-            color = utils.convert_rgb_to_Color(rgb_color)
 
-            disp.display(time_str, color=color)
+            rgb_color_digit = couleurs.compute_color(minutes_of_day, luminosity_coeff=0.2, value_min_light = 0.1)
+            rgb_color_top = couleurs.compute_color(minutes_of_day, luminosity_coeff=1)
+
+            disp.display(time_str, color=utils.convert_rgb_to_Color(rgb_color_digit))
+            top_light.show_color(utils.convert_rgb_to_Color(rgb_color_top))
 
 
-        disp.set_separator_state(separator_state, color)
+        disp.set_separator_state(separator_state, color=utils.convert_rgb_to_Color(rgb_color_digit))
         separator_state = not separator_state
 
         time.sleep(1)
@@ -107,6 +112,7 @@ def args_parse(argv):
 
 
 disp = None
+top_light = None
 strip = None
 
 def exit_handler(signum, frame):
@@ -114,6 +120,7 @@ def exit_handler(signum, frame):
 
     logging.info("Exiting on SIGTERM ..")
     disp.clear()
+    top_light.clear()
     exit()
 
 
@@ -141,9 +148,11 @@ if __name__ == '__main__':
     strip.begin()
 
     disp = display.Screen(strip)
+    top_light = top.Top(strip, top_offset=29, top_length=27)
 
     logging.info("Installing handlers")
     signal.signal(signal.SIGTERM, exit_handler)
+    signal.signal(signal.SIGINT, exit_handler)
 
     disp.display("dodo")
     time.sleep(1)

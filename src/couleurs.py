@@ -7,7 +7,7 @@ import time, math, colorsys, logging
 DAY_LENTGH = 1440.0
 
 
-def compute_color(minute_of_the_day, saturation_min = 0.25, value_min_light = 0.25, full_night_hour=4, luminosity_coeff=1):
+def compute_color(minute_of_the_day, saturation_min = 0.25, value_min_light = 0.25, full_night_hour=4, luminosity_coeff=1, color_offset=0.5):
 
     full_night_hour = max(min(full_night_hour,24),0)
     # Calcul de la position de l'heure la plus basse
@@ -19,7 +19,7 @@ def compute_color(minute_of_the_day, saturation_min = 0.25, value_min_light = 0.
     saturation_min = max(min(saturation_min, 1),0)
     value_min_light = max(min(value_min_light, 1),0)
 
-    h = (2 * minute_of_the_day / DAY_LENTGH) % 1
+    h = (2 * minute_of_the_day / DAY_LENTGH) + color_offset % 1
     s = saturation_min + (0.5 * (1 - saturation_min) * (math.cos((minute_of_the_day / (DAY_LENTGH / 2.)) * 2 *math.pi)+1))
     v = value_min_light + (0.5 * (1 - value_min_light) * (math.sin( ((minute_of_the_day - DAY_LENTGH * value_phase)/(DAY_LENTGH)) * 2 * math.pi)+1))
     v *= luminosity_coeff
