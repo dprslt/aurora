@@ -6,7 +6,7 @@ c_blue="\e[34m"
 s_def="\e[0m"
 s_dim="\e[2m"
 
-DAEMON_NAME="horloge"
+DAEMON_NAME="aurora"
 
-DAEMON_PATH="/srv/horloge/"
+DAEMON_PATH="/srv/$DAEMON_NAME/"
 SERVICE_PATH="/etc/systemd/system/$DAEMON_NAME"

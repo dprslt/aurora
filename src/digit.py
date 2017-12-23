@@ -37,6 +37,11 @@ characters_map = {
 	"b" : [True, True, True, True, False, False, True],
 	"d" : [False, True, True, True, False, True, True],
 	"O" : [True, True, True, False, True, True, True],
+	"-" : [False, False, False, True, False, False, False],
+	"J" : [False, True, True, False, False, True, True],
+	"u" : [False, True, True, False, False, False, True],
+	"U" : [True, True, True, False, False, True, True],
+	"P" : [True, True, False, True, True, True, False],
 
     }
 
@@ -62,7 +67,7 @@ class Digit(object):
 
     def write(self, char, color=(255,0,0)):
         if char not in characters_map:
-            logging.warning("Error displaying : %s not found in dictionnay, it's probably not possible to print if on a 7 segments display",char)
+            logging.warning("Error displaying : %s not found in dictionnay, it's probably not possible to print it on a 7 segments display",char)
             return
 
         self._led_output(char,color)
