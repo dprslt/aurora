@@ -11,10 +11,7 @@ class RealTime(AbstractTimeCore):
         super(RealTime, self).__init__(strip, display, light)
         self.sleeping_time = 0.2
 
-    def compute_minutes_of_day(self):
-        hours = int(self.time_str[0:2])
-        minutes = int(self.time_str[2:4])
-        return hours * 60 + minutes
+
 
     def play(self):
         ## Infinite Loop

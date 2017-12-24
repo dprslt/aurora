@@ -1,4 +1,4 @@
-from strategies.colors import TwoCyclePerDay
+from strategies.colors import OneCyclePerHour
 
 
 class AbstractCore(object):
@@ -8,8 +8,7 @@ class AbstractCore(object):
         self.strip = strip
         self.display = display
         self.light = light
-        self.light_color_strategy = TwoCyclePerDay(luminosity_coeff=1)
-        self.screen_color_strategy = TwoCyclePerDay(luminosity_coeff=0.2, value_min_light=0.1)
+        self.light_color_strategy = OneCyclePerHour(luminosity_coeff=1)
 
     def play(self):
         raise NotImplementedError()

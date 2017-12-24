@@ -10,9 +10,8 @@ class AbstractTimeCore(AbstractCore):
         self.time_str=""
         self.color_digit = None
 
+
     def refresh(self):
-        if self.need_refresh:
-            self.need_refresh = False
 
         minutes_of_day = self.compute_minutes_of_day()
 

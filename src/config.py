@@ -1,4 +1,5 @@
 import logging
+from threading import RLock
 
 log_level = logging.INFO
 display_strategy_name = "real"
@@ -9,5 +10,6 @@ strip = None
 
 core_strategy = None
 
+strip_lock = RLock()
 
-thread2 = None
+scheduler = None

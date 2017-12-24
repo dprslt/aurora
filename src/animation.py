@@ -23,7 +23,7 @@ def loop_chenillard_digits(strip, color=Color(255,0,0)):
         delay_chenillard *= 0.90
 
 def chenillard(strip, color=Color(255,0,0), delay=0.2):
-    logging.info("Animation chenillard is running !")
+    #logging.info("Animation chenillard is running !")
     offset = 0
     segments = [0, 1, 2, 11, 19, 24, 28, 27, 26, 17, 9, 4]
 
@@ -49,7 +49,7 @@ def chenillard(strip, color=Color(255,0,0), delay=0.2):
     utils.led_off(strip, offset + old_seg)
 
 def chenillard_digit(strip, color=Color(255,0,0), delay=0.2):
-    logging.info("Animation chenillard_digit is running !")
+    #logging.info("Animation chenillard_digit is running !")
     offset = 0
     digits_segments = [
         [0, 1, 2, 6, 5, 4],

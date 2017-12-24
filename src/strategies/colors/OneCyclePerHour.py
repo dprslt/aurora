@@ -9,10 +9,10 @@ from strategies.colors.AbstractColor import AbstractColor
 DAY_LENTGH = 1440.0
 
 
-class TwoCyclePerDay(AbstractColor):
+class OneCyclePerHour(AbstractColor):
     def __init__(self, saturation_min=0.95, value_min_light=0.10, full_night_hour=4, luminosity_coeff=1,
                  color_offset=0.5):
-        super(TwoCyclePerDay, self).__init__()
+        super(OneCyclePerHour, self).__init__()
         self.color_offset = color_offset
         self.luminosity_coeff = luminosity_coeff
         self.full_night_hour = full_night_hour
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     data = np.zeros((64, 64, 3), dtype=np.uint8)
     step = 0
 
-    color = TwoCyclePerDay()
+    color = OneCyclePerHour()
 
     while True:
         r, g, b = color.get_current_color(step)
@@ -56,7 +56,7 @@ if __name__ == '__main__':
         hour = step / 60
         minutes = step % 60
 
-        print step, " - ", hour, "h", minutes, " : ", (r, g, b)
+        print (step, " - ", hour, "h", minutes, " : ", (r, g, b))
 
         data[:, :, 0] = int(r)
         data[:, :, 1] = int(g)

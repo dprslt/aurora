@@ -23,7 +23,7 @@ Description=Horloge LED
 [Service]
 Type=simple
 User=root
-ExecStart=/srv/aurora/reveil-daemon.py
+ExecStart=python3 /srv/aurora/reveil-daemon.py
 
 [Install]
 WantedBy=multi-user.target

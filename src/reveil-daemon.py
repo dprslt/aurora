@@ -5,6 +5,7 @@ import getopt
 import logging
 import signal
 import sys
+import threading
 import time
 
 from neopixel import *
@@ -13,11 +14,16 @@ import RPi.GPIO as GPIO
 import config
 import display
 import light
+from Scheduler import Scheduler
+from strategies.colors.FixedColor import FixedColor
 
 from strategies.core import get_display_strategy
 from strategies.buttons import ToogleLight
 
 # LED strip configuration:
+from strategies.screen.DisplayMessage import DisplayMessage
+from strategies.screen.RealTime import RealTime
+
 LED_COUNT = 60  # Number of LED pixels.
 LED_PIN = 18  # GPIO pin connected to the pixels (18 uses PWM!).
 # LED_PIN        = 10      # GPIO pin connected to the pixels (10 uses SPI /dev/spidev0.0).
@@ -44,11 +50,11 @@ def args_parse(argv):
     try:
         opts, args = getopt.getopt(argv, "hvqa")
     except getopt.GetoptError:
-        print hlp
+        print (hlp)
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print hlp
+            print(hlp)
             sys.exit()
         elif opt == "-v":
             config.log_level = logging.DEBUG
@@ -62,8 +68,14 @@ def exit_handler(signum, frame):
     global disp, strip
 
     logging.info("Exiting on SIGTERM ..")
+
+    config.scheduler.stop()
+    config.scheduler.join(1)
+
     disp.clear()
     top_light.clear()
+
+
     exit()
 
 
@@ -85,6 +97,7 @@ if __name__ == '__main__':
     disp = display.Screen(strip)
     top_light = light.Light(strip, top_offset=29)
 
+    # TODO replace
     logging.info("Pulling display strategy for name %s", config.display_strategy_name)
     config.core_strategy = get_display_strategy(config.display_strategy_name, strip, disp, top_light)
 
@@ -93,14 +106,21 @@ if __name__ == '__main__':
     but1 = ToogleLight(top_light)
     but1.register(23, pull_up_down=GPIO.PUD_UP)
 
-
     logging.info("Installing handlers")
     signal.signal(signal.SIGTERM, exit_handler)
     signal.signal(signal.SIGINT, exit_handler)
-
 
     disp.display("dodo")
     time.sleep(1)
     disp.clear()
 
-    config.core_strategy.play()
+    config.scheduler = Scheduler()
+    config.scheduler.set_screen_thread(RealTime(strip, disp))
+
+    config.scheduler.start()
+
+    time.sleep(3)
+
+    config.scheduler.temporary_switch_screen_thread(DisplayMessage(strip, disp, "6666", 10, FixedColor([255, 0, 0])))
+
+    config.scheduler.join()
