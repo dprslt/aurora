@@ -3,7 +3,7 @@ from threading import Thread, Event
 import logging
 
 
-class PausableThread(Thread):
+class StoppablePausableThread(Thread):
     def __init__(self):
         Thread.__init__(self)
         self.running = True

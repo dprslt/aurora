@@ -5,24 +5,26 @@ import getopt
 import logging
 import signal
 import sys
-import threading
-import time
 
-from neopixel import *
 import RPi.GPIO as GPIO
+import time
+from neopixel import *
 
 import config
 import display
 import light
 from Scheduler import Scheduler
-from strategies.colors.FixedColor import FixedColor
-
+from strategies.buttons import ToogleLight, register_buttons
+from strategies.buttons.NavigateModes import NavigateModes
 from strategies.core import get_display_strategy
-from strategies.buttons import ToogleLight
-
 # LED strip configuration:
+from strategies.light.Breath import Breath
+from strategies.light.Loading import Loading
+from strategies.light.SimpleRealTimeColor import SimpleRealTimeColor
+from strategies.light.TurnedOff import TurnedOff
 from strategies.screen.DisplayMessage import DisplayMessage
-from strategies.screen.RealTime import RealTime
+from strategies.screen.DisplayScrollingMessage import DisplayScrollingMessage
+from strategies.screen.RealClockTime import RealClockTime
 
 LED_COUNT = 60  # Number of LED pixels.
 LED_PIN = 18  # GPIO pin connected to the pixels (18 uses PWM!).
@@ -70,13 +72,10 @@ def exit_handler(signum, frame):
     logging.info("Exiting on SIGTERM ..")
 
     config.scheduler.stop()
-    config.scheduler.join(1)
 
-    disp.clear()
-    top_light.clear()
-
-
-    exit()
+    with config.strip_lock:
+        disp.clear()
+        top_light.clear()
 
 
 if __name__ == '__main__':
@@ -97,30 +96,32 @@ if __name__ == '__main__':
     disp = display.Screen(strip)
     top_light = light.Light(strip, top_offset=29)
 
-    # TODO replace
-    logging.info("Pulling display strategy for name %s", config.display_strategy_name)
-    config.core_strategy = get_display_strategy(config.display_strategy_name, strip, disp, top_light)
-
     ## Buttons configuration
 
-    but1 = ToogleLight(top_light)
-    but1.register(23, pull_up_down=GPIO.PUD_UP)
+    register_buttons(top_light, disp)
 
     logging.info("Installing handlers")
     signal.signal(signal.SIGTERM, exit_handler)
     signal.signal(signal.SIGINT, exit_handler)
 
-    disp.display("dodo")
-    time.sleep(1)
-    disp.clear()
-
     config.scheduler = Scheduler()
-    config.scheduler.set_screen_thread(RealTime(strip, disp))
+
+    config.scheduler.set_screen_thread(DisplayScrollingMessage(screen=disp, message="dodo"))
+    config.scheduler.set_light_thread(Loading(top_light))
+    time.sleep(1)
+    config.scheduler.set_screen_thread(DisplayMessage(screen=disp, message="dodo"))
+    time.sleep(1)
+
+
+    config.scheduler.set_screen_thread(RealClockTime(disp))
+    time.sleep(0.5)
+    config.scheduler.set_light_thread(SimpleRealTimeColor(top_light, paused=True))
+    config.scheduler.toogle_light(top_light)
 
     config.scheduler.start()
 
-    time.sleep(3)
+    # time.sleep(3)
 
-    config.scheduler.temporary_switch_screen_thread(DisplayMessage(strip, disp, "6666", 10, FixedColor([255, 0, 0])))
+    # config.scheduler.temporary_switch_screen_thread(DisplayMessage(disp, "6666", 10, FixedColor([255, 0, 0], 0.1)))
 
-    config.scheduler.join()
+    config.scheduler.join(1)

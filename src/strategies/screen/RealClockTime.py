@@ -1,35 +1,29 @@
-from threading import Thread, RLock, Event
-
-import time
-
-import signal
-
 import logging
-
+import signal
+import time
 from datetime import datetime
 
 import config
 from strategies.colors.OneCyclePerHour import OneCyclePerHour
 from strategies.screen.AbstractClock import AbstractClock
+from strategies.time.RealTime import RealTime
 
-lock = RLock()
 
-
-class RealTime(AbstractClock):
-    def __init__(self, strip, screen, screen_color_strategy=OneCyclePerHour(luminosity_coeff=0.2, value_min_light=0.1)):
-        AbstractClock.__init__(self, strip, screen, screen_color_strategy)
+class RealClockTime(AbstractClock, RealTime):
+    def __init__(self, screen, screen_color_strategy=OneCyclePerHour(luminosity_coeff=0.15, value_min_light=0.05)):
+        AbstractClock.__init__(self, screen, screen_color_strategy)
 
         self.separator_state = False
         self.step_counter = 0
-        self.sleeping_time = 0.2
+        self.sleeping_time = 0.5
 
     def run(self):
         logging.info("SCREEN : Clock Real Time mode")
 
-        super(RealTime, self).run()
+        super(RealClockTime, self).run()
 
     def work(self):
-        self.time_str = datetime.now().strftime("%H%M")
+        self.time_str = self.get_str_time()
 
         with config.strip_lock:
             self.refresh()
@@ -44,16 +38,11 @@ class RealTime(AbstractClock):
 
         time.sleep(self.sleeping_time)
 
-    def compute_minutes_of_day(self):
-        hours = int(self.time_str[0:2])
-        minutes = int(self.time_str[2:4])
-        return hours * 60 + minutes
-
 
 if __name__ == '__main__':
-    t1 = RealTime("t1")
-    t2 = RealTime("t2")
-    t3 = RealTime("t3")
+    t1 = RealClockTime("t1")
+    t2 = RealClockTime("t2")
+    t3 = RealClockTime("t3")
 
 
     def stop_all(signum, frame):

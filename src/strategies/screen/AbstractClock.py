@@ -1,14 +1,13 @@
 import config
 import utils
+from StoppablePausableThread import StoppablePausableThread
 from strategies.colors import OneCyclePerHour
-from strategies.core.PausableThread import PausableThread
+from strategies.time import AbstractTime
 
 
-class AbstractClock(PausableThread):
-    def __init__(self, strip, screen, screen_color_strategy=OneCyclePerHour(luminosity_coeff=0.2, value_min_light=0.1)
-                 ):
+class AbstractClock(StoppablePausableThread, AbstractTime):
+    def __init__(self, screen, screen_color_strategy=OneCyclePerHour(luminosity_coeff=0.2, value_min_light=0.1)):
         super(AbstractClock, self).__init__()
-        self.strip = strip
         self.screen = screen
 
         self.time_str = ""
@@ -24,9 +23,6 @@ class AbstractClock(PausableThread):
 
         with config.strip_lock:
             self.screen.display(self.time_str, color=self.color_digit)
-
-    def compute_minutes_of_day(self):
-        raise NotImplementedError()
 
     def work(self):
         raise NotImplementedError()

@@ -10,6 +10,8 @@ DAY_LENTGH = 1440.0
 
 
 class OneCyclePerHour(AbstractColor):
+
+
     def __init__(self, saturation_min=0.95, value_min_light=0.10, full_night_hour=4, luminosity_coeff=1,
                  color_offset=0.5):
         super(OneCyclePerHour, self).__init__()
@@ -20,6 +22,12 @@ class OneCyclePerHour(AbstractColor):
         self.saturation_min = saturation_min
 
     def get_current_color(self, minutes_of_day):
+        hsv = self.get_current_color_hsv(minutes_of_day)
+
+        # Convertion en RGB sur base 255
+        return [int(i * 255) for i in colorsys.hsv_to_rgb(hsv[0], hsv[1], hsv[2])]
+
+    def get_current_color_hsv(self, minutes_of_day):
         full_night_hour = max(min(self.full_night_hour, 24), 0)
         # Calcul de la position de l'heure la plus basse
         # 0.25 correspond au delta pour placer le min de la courbe à 0
@@ -31,15 +39,14 @@ class OneCyclePerHour(AbstractColor):
         value_min_light = max(min(self.value_min_light, 1), 0)
 
         # Ecriture des valeurs hsv
-        h = (24 * minutes_of_day / DAY_LENTGH) + self.color_offset % 1
+        h = (15 * minutes_of_day / DAY_LENTGH) + self.color_offset % 1
         s = saturation_min + (
-            0.5 * (1 - saturation_min) * (math.cos((minutes_of_day / (DAY_LENTGH / 24.)) * 2 * math.pi) + 1))
+            0.5 * (1 - saturation_min) * (math.cos((minutes_of_day / (DAY_LENTGH / 15.)) * 2 * math.pi) + 1))
         v = value_min_light + (0.5 * (1 - value_min_light) * (
             math.sin(((minutes_of_day - DAY_LENTGH * value_phase) / DAY_LENTGH) * 2 * math.pi) + 1))
         v *= luminosity_coeff
 
-        # Convertion en RGB sur base 255
-        return [int(i * 255) for i in colorsys.hsv_to_rgb(h, s, v)]
+        return [h, s, v]
 
 
 if __name__ == '__main__':
