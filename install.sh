@@ -35,4 +35,8 @@ echo -e $c_green"Starting service in  : "$s_dim"$SERVICE_PATH"$c_def $s_def
 systemctl start $DAEMON_NAME
 systemctl enable $DAEMON_NAME
 
-#TODO CRON TASK
+
+
+echo -e $c_green"Installing update cron job : "$s_dim"$DAEMON_PATH"$c_def $s_def
+
+(sudo crontab -l && echo "0 12 * * * cd /home/pi/aurora/ ; sudo ./update.sh")  | sudo crontab

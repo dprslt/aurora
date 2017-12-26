@@ -17,3 +17,8 @@ rm $SERVICE_PATH.service
 echo -e $c_green"Deleting install directory : "$s_dim"$DAEMON_PATH"$c_def $s_def
 
 rm -r $DAEMON_PATH
+
+echo -e $c_green"Removing update cron job : "$s_dim"$DAEMON_PATH"$c_def $s_def
+
+sudo crontab -l | grep -v aurora | sudo crontab
+

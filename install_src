@@ -1,7 +1,7 @@
 c_def="\e[39m"
 c_red="\e[91m"
 c_green="\e[92m"
-c_blue="\e[34m"
+c_blue="\e[96m"
 
 s_def="\e[0m"
 s_dim="\e[2m"
