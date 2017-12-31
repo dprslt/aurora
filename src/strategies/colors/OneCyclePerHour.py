@@ -42,8 +42,11 @@ class OneCyclePerHour(AbstractColor):
         h = (15 * minutes_of_day / DAY_LENTGH) + self.color_offset % 1
         s = saturation_min + (
             0.5 * (1 - saturation_min) * (math.cos((minutes_of_day / (DAY_LENTGH / 15.)) * 2 * math.pi) + 1))
-        v = value_min_light + (0.5 * (1 - value_min_light) * (
-            math.sin(((minutes_of_day - DAY_LENTGH * value_phase) / DAY_LENTGH) * 2 * math.pi) + 1))
+        if minutes_of_day < (22 * 60) and minutes_of_day > (8 * 60) :
+            v = 1.0 
+        else :
+            v = value_min_light 
+
         v *= luminosity_coeff
 
         return [h, s, v]

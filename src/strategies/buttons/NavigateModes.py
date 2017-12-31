@@ -5,6 +5,9 @@ import config
 from strategies.buttons.AbstractButtonAction import AbstractButtonAction
 from strategies.light.Breath import Breath
 from strategies.light.SimpleRealTimeColor import SimpleRealTimeColor
+from strategies.light.SimpleColor import SimpleColor
+from strategies.colors.FixedColor import FixedColor
+
 from strategies.screen import DisplayMessage
 
 
@@ -15,14 +18,15 @@ class NavigateModes(AbstractButtonAction):
         self.disp = disp
         self.running = False
 
-        self.i = 0
+        self.i = 1
 
         self.running = False
         self.lock = Lock()
 
         self.modes = [
+            self.one_cycle_per_hour,
             self.breathing_warm,
-            self.one_cycle_per_hour
+            self.full_light
         ]
 
     def action(self, channel):
@@ -51,3 +55,8 @@ class NavigateModes(AbstractButtonAction):
     def one_cycle_per_hour(self):
         config.scheduler.set_light_thread(SimpleRealTimeColor(self.light))
         config.scheduler.temporary_switch_screen_thread(DisplayMessage(screen=self.disp, message="rEAL", duration=0.5))
+        
+    def full_light(self):
+        config.scheduler.set_light_thread(SimpleColor(self.light,FixedColor([255,255,255])))
+        config.scheduler.temporary_switch_screen_thread(DisplayMessage(screen=self.disp, message="PAtE", duration=0.5))
+        
