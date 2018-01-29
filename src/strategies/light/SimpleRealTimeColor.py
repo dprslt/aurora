@@ -10,7 +10,7 @@ from strategies.time.RealTime import RealTime
 
 
 class SimpleRealTimeColor(StoppablePausableThread, RealTime):
-    def __init__(self, light, paused = False, color_strategy=OneCyclePerHour(luminosity_coeff=1)):
+    def __init__(self, light, paused = False, color_strategy=OneCyclePerHour(luminosity_coeff=0.5, value_min_light=0.1)):
         super(SimpleRealTimeColor, self).__init__()
         self.light = light
         self.color_strategy = color_strategy
