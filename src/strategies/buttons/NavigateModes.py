@@ -9,6 +9,11 @@ from strategies.light.SimpleColor import SimpleColor
 from strategies.colors.FixedColor import FixedColor
 
 from strategies.screen import DisplayMessage
+from strategies.screen import DisplayScrollingMessage
+
+
+from datetime import datetime
+
 
 
 class NavigateModes(AbstractButtonAction):
@@ -26,7 +31,7 @@ class NavigateModes(AbstractButtonAction):
         self.modes = [
             self.one_cycle_per_hour,
             self.breathing_warm,
-            self.full_light
+            self.full_light,
         ]
 
     def action(self, channel):
@@ -55,8 +60,12 @@ class NavigateModes(AbstractButtonAction):
     def one_cycle_per_hour(self):
         config.scheduler.set_light_thread(SimpleRealTimeColor(self.light))
         config.scheduler.temporary_switch_screen_thread(DisplayMessage(screen=self.disp, message="rEAL", duration=0.5))
-        
+
     def full_light(self):
-        config.scheduler.set_light_thread(SimpleColor(self.light,FixedColor([255,255,255])))
+        config.scheduler.set_light_thread(SimpleColor(self.light,FixedColor([255,172,68])))
         config.scheduler.temporary_switch_screen_thread(DisplayMessage(screen=self.disp, message="PAtE", duration=0.5))
-        
+
+    def days_left(self):
+        delta = datetime.strptime("04/08/2018","%d/%m/%Y") - datetime.now()
+
+        config.scheduler.temporary_switch_screen_thread(DisplayMessage(screen=self.disp, message="J"+str(delta.days), duration=2, screen_color_strategy=FixedColor([255,11,11]) ))
