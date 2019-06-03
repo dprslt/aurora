@@ -109,7 +109,7 @@ if __name__ == '__main__':
     config.scheduler.set_screen_thread(DisplayScrollingMessage(screen=disp, message="dodo"))
     config.scheduler.set_light_thread(Loading(top_light))
     time.sleep(1)
-    config.scheduler.set_screen_thread(DisplayMessage(screen=disp, message="dodo"))
+    config.scheduler.set_screen_thread(DisplayMessage(screen=disp, message="v1-1"))
     time.sleep(1)
 
 

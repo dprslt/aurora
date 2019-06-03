@@ -41,6 +41,7 @@ characters_map = {
     "r": [False, True, False, True, False, False, False],
     "t": [True, True, True, True, False, False, False],
     "u": [False, True, True, False, False, False, True],
+    "v": [False, True, True, False, False, False, True],
     "A": [True, True, False, True, True, True, True],
     "B": [True, True, True, True, True, True, True],
     "C": [True, True, True, False, True, False, False],
