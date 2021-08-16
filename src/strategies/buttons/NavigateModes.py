@@ -63,7 +63,7 @@ class NavigateModes(AbstractButtonAction):
 
     def full_light(self):
         config.scheduler.set_light_thread(SimpleColor(self.light,FixedColor([255,172,68])))
-        config.scheduler.temporary_switch_screen_thread(DisplayMessage(screen=self.disp, message="PAtE", duration=0.5))
+        config.scheduler.temporary_switch_screen_thread(DisplayMessage(screen=self.disp, message="hot", duration=0.5))
 
     def days_left(self):
         delta = datetime.strptime("04/08/2018","%d/%m/%Y") - datetime.now()
