@@ -32,7 +32,7 @@ class ServerThread(threading.Thread):
         self.ctx.push()
 
     def run(self):
-        logging.info('Stopping web server')
+        logging.info('Starting web server')
         self.server.serve_forever()
 
     def shutdown(self):
