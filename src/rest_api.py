@@ -89,18 +89,19 @@ def start_rest_server(light, disp):
     @app.route("/display/text/<text>", methods=['POST'])
     def display_custom_text(text):
         color = None
+        duration = len(text) / 3 + 1
         try:
             color = get_color_from_query(request.args)
         finally:
             if(color):
                 config.scheduler.temporary_switch_screen_thread(
                     DisplayScrollingMessage(
-                        disp, text, 2, screen_color_strategy=color)
+                        disp, text, duration, screen_color_strategy=color)
                 )
             else:
                 config.scheduler.temporary_switch_screen_thread(
                     DisplayScrollingMessage(
-                        disp, text, 2)
+                        disp, text, duration)
                 )
             return 'OK'
 
