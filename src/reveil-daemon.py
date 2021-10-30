@@ -25,6 +25,8 @@ from strategies.light.TurnedOff import TurnedOff
 from strategies.screen.DisplayMessage import DisplayMessage
 from strategies.screen.DisplayScrollingMessage import DisplayScrollingMessage
 from strategies.screen.RealClockTime import RealClockTime
+import rest_api
+
 
 LED_COUNT = 60  # Number of LED pixels.
 LED_PIN = 18  # GPIO pin connected to the pixels (18 uses PWM!).
@@ -67,7 +69,7 @@ def args_parse(argv):
 
 
 def exit_handler(signum, frame):
-    global disp, strip
+    global disp, strip, rest_server_thread
 
     logging.info("Exiting on SIGTERM ..")
 
@@ -76,6 +78,10 @@ def exit_handler(signum, frame):
     with config.strip_lock:
         disp.clear()
         top_light.clear()
+
+    rest_server_thread.shutdown()
+    # rest_server.kill()
+    # rest_server.join()
 
 
 if __name__ == '__main__':
@@ -105,11 +111,11 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, exit_handler)
 
     config.scheduler = Scheduler()
-
-    config.scheduler.set_screen_thread(DisplayScrollingMessage(screen=disp, message="Boe"))
+    # Starting boot routine
+    config.scheduler.set_screen_thread(DisplayScrollingMessage(screen=disp, message="BOOOOOOOE",duration=2))
     config.scheduler.set_light_thread(Loading(top_light))
     time.sleep(1)
-    config.scheduler.set_screen_thread(DisplayMessage(screen=disp, message="v1-2"))
+    config.scheduler.set_screen_thread(DisplayMessage(screen=disp, message="v1-3"))
     time.sleep(1)
 
 
@@ -117,6 +123,9 @@ if __name__ == '__main__':
     time.sleep(0.5)
     config.scheduler.set_light_thread(SimpleRealTimeColor(top_light, paused=True))
     config.scheduler.toogle_light(top_light)
+    
+    rest_server_thread = rest_api.start_rest_server(light=top_light, disp=disp)
+    # rest_server = rest_api.start_rest_server(light=top_light, disp=disp)
 
     config.scheduler.start()
 
