@@ -37,6 +37,6 @@ systemctl enable $DAEMON_NAME
 
 
 
-echo -e $c_green"Installing update cron job : "$s_dim"$DAEMON_PATH"$c_def $s_def
+# echo -e $c_green"Installing update cron job : "$s_dim"$DAEMON_PATH"$c_def $s_def
 
-(echo "0 12 * * * cd /home/pi/aurora/ ; sudo ./update.sh") > /etc/cron.daily/aurora-update
+# (echo "0 3 * * * cd /home/pi/aurora/ ; sudo ./update.sh") > /etc/cron.daily/aurora-update
