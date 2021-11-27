@@ -25,3 +25,8 @@ class TurnedOff(StoppablePausableThread):
 
     def work(self):
         time.sleep(self.sleeping_time)
+
+    def resume(self):
+        with config.strip_lock:
+            self.light.clear()
+        super(TurnedOff, self).resume()

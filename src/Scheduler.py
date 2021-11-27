@@ -3,6 +3,7 @@ import time
 from threading import Lock
 
 from StoppablePausableThread import StoppablePausableThread
+from strategies.light.TimedWrapper import TimedWrapper
 from strategies.light.TurnedOff import TurnedOff
 
 
@@ -14,6 +15,7 @@ class Scheduler(StoppablePausableThread):
         self.light_th = None
 
         self._paused_screen_th = None
+        self._paused_light_th = None
 
         self.last_active_light = None
 
@@ -56,6 +58,27 @@ class Scheduler(StoppablePausableThread):
                 self.light_th.resume()
                 self.last_active_light = None
 
+
+    def temporary_set_light_thread(self, thread):
+        logging.info("Temporary set Light Thread")
+        
+        if self._paused_light_th is not None:
+            logging.warning("A thread is already here temporary")
+            return
+
+        if self.light_th is not None:
+            self.light_th.pause()
+            self._paused_light_th = self.light_th
+
+        self.light_th = thread
+        self.light_th.start()
+        self.light_th.join()
+
+        self.light_th = self._paused_light_th
+        self._paused_light_th = None
+
+        self.light_th.resume()
+        
 
 
     def temporary_switch_screen_thread(self, thread):

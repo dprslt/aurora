@@ -5,6 +5,7 @@ from multiprocessing import Process
 from strategies.colors.FixedColor import FixedColor
 from strategies.light.Breath import Breath
 from strategies.light.SimpleColor import SimpleColor
+from strategies.light.TimedWrapper import TimedWrapper
 from strategies.light.TurnedOff import TurnedOff
 
 
@@ -64,12 +65,15 @@ def start_rest_server(light, disp):
         except:
             abort(Response('r, g and b query params are mandatory and must be valid numbers given : r:' +
                   str(r)+', g:'+str(g)+', b:'+str(b), 400))
-        config.scheduler.set_light_thread(
-            SimpleColor(
-                light,
-                color_strategy
-            )
-        )
+
+        color_thread = SimpleColor(light, color_strategy)
+
+        requestedTime = int(request.args.get('time', -1))
+        if(requestedTime > 0):
+            wrapped_thread = TimedWrapper(color_thread, requestedTime)
+            config.scheduler.temporary_set_light_thread(wrapped_thread)
+        else:
+            config.scheduler.set_light_thread(color_thread)
         return 'OK'
 
     @app.route("/light/breath", methods=['POST'])
