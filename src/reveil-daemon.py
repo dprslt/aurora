@@ -112,11 +112,11 @@ if __name__ == '__main__':
 
     config.scheduler = Scheduler()
     # Starting boot routine
-    config.scheduler.set_screen_thread(DisplayScrollingMessage(screen=disp, message="BOOOOOOOE",duration=2))
-    config.scheduler.set_light_thread(Loading(top_light))
-    time.sleep(1)
-    config.scheduler.set_screen_thread(DisplayMessage(screen=disp, message="v1-4"))
-    time.sleep(1)
+    # config.scheduler.set_screen_thread(DisplayScrollingMessage(screen=disp, message="BOOOOOOOE",duration=2))
+    # config.scheduler.set_light_thread(Loading(top_light))
+    # time.sleep(1)
+    # config.scheduler.set_screen_thread(DisplayMessage(screen=disp, message="v1-4"))
+    # time.sleep(1)
 
 
     config.scheduler.set_screen_thread(RealClockTime(disp))

@@ -10,7 +10,7 @@ from strategies.time.RealTime import RealTime
 
 
 class RealClockTime(AbstractClock, RealTime):
-    def __init__(self, screen, screen_color_strategy=OneCyclePerHourNightMode(luminosity_coeff=0.15, value_min_light=0.005, night_from=22, night_to=9)):
+    def __init__(self, screen, screen_color_strategy=OneCyclePerHourNightMode(luminosity_coeff=0.15, value_min_light=0.005, night_from=21, night_to=9)):
         AbstractClock.__init__(self, screen, screen_color_strategy)
 
         self.separator_state = False
