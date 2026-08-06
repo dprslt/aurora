@@ -13,3 +13,6 @@ core_strategy = None
 strip_lock = RLock()
 
 scheduler = None
+
+on_light_state_change = None
+mqtt_toggle_sync = None

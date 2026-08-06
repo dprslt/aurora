@@ -22,5 +22,7 @@ class ToogleLight(AbstractButtonAction):
         with self.lock:
             self.running = True
         config.scheduler.toogle_light(self.light)
+        if config.mqtt_toggle_sync is not None:
+            config.mqtt_toggle_sync()
         with self.lock:
             self.running = False

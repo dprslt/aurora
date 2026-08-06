@@ -26,6 +26,7 @@ from strategies.screen.DisplayMessage import DisplayMessage
 from strategies.screen.DisplayScrollingMessage import DisplayScrollingMessage
 from strategies.screen.RealClockTime import RealClockTime
 import rest_api
+import mqtt
 
 
 LED_COUNT = 60  # Number of LED pixels.
@@ -126,6 +127,7 @@ if __name__ == '__main__':
     
     rest_server_thread = rest_api.start_rest_server(light=top_light, disp=disp)
     # rest_server = rest_api.start_rest_server(light=top_light, disp=disp)
+    mqtt.start_mqtt(top_light)
 
     config.scheduler.start()
 

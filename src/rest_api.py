@@ -29,6 +29,8 @@ _light_state = {
 def _update_light_state(**kwargs):
     with _state_lock:
         _light_state.update(kwargs)
+    if config.on_light_state_change is not None:
+        config.on_light_state_change(dict(_light_state))
 
 
 def _get_light_state():
