@@ -50,8 +50,9 @@ def _load_settings():
 
 
 def _setting(settings, name, default=None):
-    if name in settings:
-        return settings[name]
+    for key in (name, 'MQTT_' + name):
+        if key in settings:
+            return settings[key]
     return os.environ.get('MQTT_' + name, default)
 
 
