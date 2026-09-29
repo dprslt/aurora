@@ -39,9 +39,9 @@ PALETTE = [
     (40, 85, 195),
 ]
 
-DEFAULT_BRIGHTNESS = 0.55
+DEFAULT_BRIGHTNESS = 0.2
 DEFAULT_FPS = 30
-DEFAULT_DURATION = 1800.0  # 30 min sleep session; <= 0 runs until stopped
+DEFAULT_DURATION = 900.0  # 15 min sleep session; <= 0 runs until stopped
 DEFAULT_FADE_OUT = 20.0
 
 FADE_HALF_LIFE_S = 0.7  # trail persistence: time for a lit cell to halve
@@ -62,7 +62,7 @@ FLASH_INTERVAL_S = 24.0
 FLASH_DURATION_S = 0.55
 FLASH_BOOST = 0.12
 
-AMBIENT_RGB = (2, 5, 16)
+AMBIENT_RGB = (1, 3, 9)
 
 
 class _Ripple(object):
