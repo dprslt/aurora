@@ -6,6 +6,7 @@ from flask import Flask, request, abort, Response, jsonify
 from strategies.colors.FixedColor import FixedColor
 from strategies.light.Breath import Breath
 from strategies.light.SimpleColor import SimpleColor
+from strategies.light.SleepyRain import SleepyRain, DEFAULT_DURATION as SLEEPY_RAIN_DURATION
 from strategies.light.TimedWrapper import TimedWrapper
 from strategies.light.TurnedOff import TurnedOff
 
@@ -120,6 +121,18 @@ def start_rest_server(light, disp):
             pauses=[0.05, 0.8],
             frequency=40
         ))
+        return 'OK'
+
+    @app.route("/light/sleepy_rain", methods=['POST'])
+    def display_light_sleepy_rain():
+        duration_arg = request.args.get('duration')
+        try:
+            duration = float(duration_arg) if duration_arg is not None else SLEEPY_RAIN_DURATION
+        except ValueError:
+            abort(Response('duration must be a number of seconds (0 = no timer)', 400))
+
+        _update_light_state(state='on', mode='sleepy_rain')
+        config.scheduler.set_light_thread(SleepyRain(light, duration=duration))
         return 'OK'
 
     @app.route("/light/switch", methods=['GET', 'POST'])

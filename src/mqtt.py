@@ -6,6 +6,7 @@ import threading
 import config
 from strategies.colors.FixedColor import FixedColor
 from strategies.light.SimpleColor import SimpleColor
+from strategies.light.SleepyRain import SleepyRain, DEFAULT_DURATION as SLEEPY_RAIN_DURATION
 from strategies.light.TurnedOff import TurnedOff
 
 try:
@@ -18,11 +19,16 @@ CONFIG_FILE = '/etc/aurora/mqtt.conf'
 DEFAULT_BASE_TOPIC = 'aurora/light'
 DEFAULT_DISCOVERY_PREFIX = 'homeassistant'
 
+EFFECT_SOLID = 'solid'
+EFFECT_SLEEPY_RAIN = 'sleepy_rain'
+EFFECT_LIST = [EFFECT_SOLID, EFFECT_SLEEPY_RAIN]
+
 _state_lock = threading.Lock()
 _mirror = {
     'state': 'OFF',
     'color': {'r': 255, 'g': 172, 'b': 68},
     'brightness': 255,
+    'effect': EFFECT_SOLID,
 }
 
 _client = None
@@ -31,6 +37,9 @@ _command_topic = None
 _state_topic = None
 _availability_topic = None
 _discovery_topic = None
+_button_command_topic = None
+_button_discovery_topic = None
+_sleepy_rain_duration = SLEEPY_RAIN_DURATION
 
 
 def _load_settings():
@@ -64,6 +73,15 @@ def _publish_state():
     _client.publish(_state_topic, payload, qos=0, retain=True)
 
 
+def _device_info():
+    return {
+        'identifiers': ['aurora'],
+        'name': 'Aurora',
+        'model': 'Aurora (reveil)',
+        'manufacturer': 'dprslt',
+    }
+
+
 def _discovery_payload():
     return {
         'name': 'Aurora',
@@ -77,9 +95,40 @@ def _discovery_payload():
         'brightness': True,
         'color_mode': True,
         'supported_color_modes': ['rgb'],
+        'effect': True,
+        'effect_list': EFFECT_LIST,
+        'device': _device_info(),
         'qos': 0,
         'retain': True,
     }
+
+
+def _button_discovery_payload():
+    return {
+        'name': 'Sleepy Rain',
+        'unique_id': 'aurora_sleepy_rain',
+        'command_topic': _button_command_topic,
+        'payload_press': 'PRESS',
+        'availability_topic': _availability_topic,
+        'payload_available': 'online',
+        'payload_not_available': 'offline',
+        'device': _device_info(),
+        'qos': 0,
+        'retain': True,
+    }
+
+
+def _build_thread(state, effect, color, brightness):
+    if state != 'ON':
+        return TurnedOff(_light)
+
+    if effect == EFFECT_SLEEPY_RAIN:
+        return SleepyRain(_light, duration=_sleepy_rain_duration)
+
+    return SimpleColor(_light, FixedColor(
+        [color['r'], color['g'], color['b']],
+        luminosity=brightness / 255.0,
+    ))
 
 
 def _apply_command(payload):
@@ -87,43 +136,60 @@ def _apply_command(payload):
         state = _mirror['state']
         color = dict(_mirror['color'])
         brightness = _mirror['brightness']
+        effect = _mirror['effect']
 
     if 'state' in payload:
         state = 'ON' if payload['state'] in ('ON', 'on', True, 1) else 'OFF'
 
+    # Changing colour or brightness takes the light out of an effect.
     if isinstance(payload.get('color'), dict):
         color = {
             'r': int(payload['color']['r']),
             'g': int(payload['color']['g']),
             'b': int(payload['color']['b']),
         }
+        effect = EFFECT_SOLID
 
     if 'brightness' in payload:
         try:
             brightness = max(0, min(255, int(payload['brightness'])))
         except (TypeError, ValueError):
             brightness = 255
+        effect = EFFECT_SOLID
+
+    if 'effect' in payload and payload['effect'] in EFFECT_LIST:
+        effect = payload['effect']
+        if effect == EFFECT_SLEEPY_RAIN:
+            state = 'ON'
 
     with _state_lock:
         _mirror['state'] = state
         _mirror['color'] = color
         _mirror['brightness'] = brightness
+        _mirror['effect'] = effect
 
-    if state == 'ON':
-        thread = SimpleColor(_light, FixedColor(
-            [color['r'], color['g'], color['b']],
-            luminosity=brightness / 255.0,
-        ))
-    else:
-        thread = TurnedOff(_light)
-    config.scheduler.set_light_thread(thread)
+    config.scheduler.set_light_thread(_build_thread(state, effect, color, brightness))
 
+    _publish_state()
+
+
+def _on_button_press(topic, payload):
+    logging.info('MQTT : button press on %s : %s', topic, payload)
+    if payload.strip().upper() not in ('PRESS', 'PRESSED', 'ON', '1'):
+        return
+
+    with _state_lock:
+        _mirror['state'] = 'ON'
+        _mirror['effect'] = EFFECT_SLEEPY_RAIN
+
+    config.scheduler.set_light_thread(SleepyRain(_light, duration=_sleepy_rain_duration))
     _publish_state()
 
 
 def _on_connect(client, userdata, flags, rc):
     logging.info('MQTT : connected to broker (rc=%s)', rc)
     client.subscribe(_command_topic)
+    client.subscribe(_button_command_topic)
     client.publish(_availability_topic, 'online', retain=True)
     _publish_state()
 
@@ -139,9 +205,15 @@ def _on_disconnect(client, userdata, rc):
 def _on_message(client, userdata, msg):
     logging.info('MQTT : command on %s : %s', msg.topic, msg.payload)
     try:
+        if msg.topic == _button_command_topic:
+            _on_button_press(msg.topic, msg.payload.decode('utf-8'))
+            return
         payload = json.loads(msg.payload.decode('utf-8'))
     except ValueError:
         logging.warning('MQTT : ignoring invalid JSON command : %s', msg.payload)
+        return
+    except Exception as err:
+        logging.error('MQTT : failed to handle command : %s', err)
         return
     if not isinstance(payload, dict):
         logging.warning('MQTT : ignoring non-object command : %s', msg.payload)
@@ -157,6 +229,8 @@ def _on_external_state_change(state):
         _mirror['state'] = 'ON' if state.get('state') == 'on' else 'OFF'
         if isinstance(state.get('color'), dict):
             _mirror['color'] = dict(state['color'])
+        _mirror['effect'] = (EFFECT_SLEEPY_RAIN if state.get('mode') == EFFECT_SLEEPY_RAIN
+                             else EFFECT_SOLID)
         if _mirror['state'] == 'ON':
             _mirror['brightness'] = 255
     _publish_state()
@@ -176,6 +250,7 @@ def start_mqtt(light):
         return None
 
     global _light, _client, _command_topic, _state_topic, _availability_topic, _discovery_topic
+    global _button_command_topic, _button_discovery_topic, _sleepy_rain_duration
 
     settings = _load_settings()
     host = _setting(settings, 'HOST', None)
@@ -190,6 +265,13 @@ def start_mqtt(light):
     _state_topic = base_topic + '/state'
     _availability_topic = base_topic + '/availability'
     _discovery_topic = prefix + '/light/aurora/config'
+    _button_command_topic = base_topic + '/sleepy_rain/set'
+    _button_discovery_topic = prefix + '/button/aurora_sleepy_rain/config'
+
+    try:
+        _sleepy_rain_duration = float(_setting(settings, 'SLEEPY_RAIN_DURATION', SLEEPY_RAIN_DURATION))
+    except (TypeError, ValueError):
+        _sleepy_rain_duration = SLEEPY_RAIN_DURATION
 
     try:
         port = int(_setting(settings, 'PORT', 1883))
@@ -216,6 +298,7 @@ def start_mqtt(light):
     client.loop_start()
     _client = client
     client.publish(_discovery_topic, json.dumps(_discovery_payload()), retain=True)
+    client.publish(_button_discovery_topic, json.dumps(_button_discovery_payload()), retain=True)
 
     config.on_light_state_change = _on_external_state_change
     config.mqtt_toggle_sync = _on_local_toggle

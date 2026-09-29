@@ -6,6 +6,7 @@ from strategies.buttons.AbstractButtonAction import AbstractButtonAction
 from strategies.light.Breath import Breath
 from strategies.light.SimpleRealTimeColor import SimpleRealTimeColor
 from strategies.light.SimpleColor import SimpleColor
+from strategies.light.SleepyRain import SleepyRain
 from strategies.colors.FixedColor import FixedColor
 
 from strategies.screen import DisplayMessage
@@ -32,6 +33,7 @@ class NavigateModes(AbstractButtonAction):
             self.one_cycle_per_hour,
             self.breathing_warm,
             self.full_light,
+            self.sleepy_rain,
         ]
 
     def action(self, channel):
@@ -64,6 +66,10 @@ class NavigateModes(AbstractButtonAction):
     def full_light(self):
         config.scheduler.set_light_thread(SimpleColor(self.light,FixedColor([255,172,68])))
         config.scheduler.temporary_switch_screen_thread(DisplayMessage(screen=self.disp, message="hot", duration=0.5))
+
+    def sleepy_rain(self):
+        config.scheduler.set_light_thread(SleepyRain(self.light, duration=0))
+        config.scheduler.temporary_switch_screen_thread(DisplayMessage(screen=self.disp, message="rAi ", duration=0.5))
 
     def days_left(self):
         delta = datetime.strptime("04/08/2018","%d/%m/%Y") - datetime.now()

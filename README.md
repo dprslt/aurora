@@ -49,3 +49,25 @@ Options optionnelles dans `mqtt.conf` : `MQTT_BASE_TOPIC` (défaut `aurora/light
 
 L'entité `light.aurora` apparaît automatiquement dans Home Assistant (découverte MQTT).
 
+## Effet Sleepy Rain (endormissement)
+
+Pluie bleue apaisante rendue sur le ruban du couvercle. Comme ce ruban forme une
+**boucle horizontale** (pas de chute verticale possible), l'effet est adapté en
+1D : une goutte tombe à une position aléatoire et deux fronts d'onde partent dans
+les deux sens autour de la boucle, se croisent et s'estompent, avec une traînée
+persistante, un cadencement par rafales suivies de pauses, une palette bleue
+sombre et de rares flashs doux. Les réglages (palette, vitesse, densité,
+luminosité) sont en tête de `src/strategies/light/SleepyRain.py`.
+
+Déclenchement :
+
+- **Bouton 2** (navigation des modes) : un appui fait défiler les modes, dont
+  `rAi ` (Sleepy Rain) — mode continu.
+- **REST** : `POST /light/sleepy_rain` avec l'option `?duration=<secondes>`
+  (`0` = sans minuterie). Par défaut `1800` s (30 min), puis fondu vers l'extinction.
+- **MQTT / Home Assistant** : bouton `Sleepy Rain` et effet `sleepy_rain` sur
+  `light.aurora`.
+
+La durée des sessions MQTT/REST est réglable via `SLEEPY_RAIN_DURATION` (secondes,
+`0` = continu) dans `/etc/aurora/mqtt.conf`.
+
