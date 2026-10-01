@@ -50,17 +50,18 @@ RIPPLE_SPEED = 3.5  # leds / second
 RIPPLE_LIFE_S = 5.5
 RIPPLE_SIGMA = 1.3  # ring half-width, in leds
 RIPPLE_AMPLITUDE = 1.0
+RIPPLE_ATTACK_S = 0.8  # fade-in time; a drop must not pop into a flash
 
 BURST_MIN = 1
 BURST_MAX = 2
 BURST_SPACING_S = 0.45
 PAUSE_MIN_S = 1.1
 PAUSE_MAX_S = 2.2
-MAX_DROPS = 1
+MAX_DROPS = 3
 
-FLASH_INTERVAL_S = 24.0
+FLASH_INTERVAL_S = 60.0
 FLASH_DURATION_S = 0.55
-FLASH_BOOST = 0.12
+FLASH_BOOST = 0.06
 
 AMBIENT_RGB = (1, 3, 9)
 
@@ -98,7 +99,6 @@ class SleepyRain(StoppablePausableThread):
         self._burst_remaining = 0
         self._next_flash_at = 0.0
         self._flash = 0.0
-        self._flash_led = -1
 
     def run(self):
         logging.info("LIGHT : Sleepy Rain mode (%d leds)", self.length)
@@ -145,7 +145,6 @@ class SleepyRain(StoppablePausableThread):
 
         if now >= self._next_flash_at:
             self._flash = 1.0
-            self._flash_led = random.randrange(self.length)
             self._next_flash_at = now + FLASH_INTERVAL_S * (0.6 + random.random() * 0.8)
 
         for ripple in list(self._ripples):
@@ -169,7 +168,8 @@ class SleepyRain(StoppablePausableThread):
     def _deposit(self, ripple):
         radius = RIPPLE_SPEED * ripple.age
         decay = max(0.0, 1.0 - ripple.age / RIPPLE_LIFE_S)
-        amplitude = RIPPLE_AMPLITUDE * decay * decay
+        attack = min(1.0, ripple.age / RIPPLE_ATTACK_S) if RIPPLE_ATTACK_S > 0 else 1.0
+        amplitude = RIPPLE_AMPLITUDE * attack * decay * decay
         sigma2 = 2.0 * RIPPLE_SIGMA * RIPPLE_SIGMA
         color = ripple.color
         n = self.length
@@ -205,11 +205,6 @@ class SleepyRain(StoppablePausableThread):
                 r = cell[0] * boost + ar
                 g = cell[1] * boost + ag
                 b = cell[2] * boost + ab
-                if i == self._flash_led and self._flash > 0.0:
-                    extra = self._flash * 40.0
-                    r += extra * 0.6
-                    g += extra
-                    b += extra * 1.4
                 r = int(min(255.0, r * scale))
                 g = int(min(255.0, g * scale))
                 b = int(min(255.0, b * scale))
